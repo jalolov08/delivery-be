@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import express from "express"
 import { mongodbUri, port } from "./config";
+import { router } from "./routes/routes";
 
 mongoose
     .connect(mongodbUri, {})
@@ -13,7 +14,7 @@ mongoose
 
 const app = express();
 app.use(express.json());
-
+app.use("/api", router)
 
 app.listen(port, () => {
     console.log(`Сервер запущен на порту ${port}`);
