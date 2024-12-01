@@ -1,7 +1,7 @@
 import { Router } from "express";
 import checkAuth from "../utils/checkAuth";
 import checkAdmin from "../utils/checkAdmin";
-import { createCategory, deleteCategory, getCategories, updateCategory } from "../controllers/category.controller";
+import { createCategory, deleteCategory, getCategories, getStructuredCategories, updateCategory } from "../controllers/category.controller";
 import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
@@ -25,3 +25,4 @@ categoryRouter.post("/", checkAuth, checkAdmin, upload.single("photo"), createCa
 categoryRouter.put("/:id", checkAuth, checkAdmin, upload.single("photo"), updateCategory)
 categoryRouter.delete("/:id", checkAuth, checkAdmin, deleteCategory)
 categoryRouter.get("/", checkAuth, getCategories)
+categoryRouter.get("/structured", checkAuth, getStructuredCategories)
