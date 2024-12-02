@@ -1,11 +1,11 @@
-import express, { Router } from "express";
+import { Router } from "express";
 import { changeProfile, getMe } from "../controllers/user.controller";
 import checkAuth from "../utils/checkAuth";
 import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 
-export const userRouter: Router = express.Router();
+export const userRouter: Router = Router();
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {

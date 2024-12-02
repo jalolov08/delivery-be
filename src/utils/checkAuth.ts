@@ -4,6 +4,7 @@ import { jwtSecret } from "../config";
 
 export interface DecodedToken {
     _id: string;
+    isAdmin: boolean;
 }
 declare global {
     namespace Express {
