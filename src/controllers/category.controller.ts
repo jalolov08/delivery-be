@@ -111,6 +111,7 @@ export async function getStructuredCategories(req: Request, res: Response) {
         });
 
         return {
+          _id: category._id,
           name: category.name,
           photoUri: category.photoUri,
           subcategories: subcategories.map((subcategory) => ({
