@@ -346,7 +346,7 @@ export async function getOrders(req: Request, res: Response) {
     productId,
     userId,
   } = req.query;
-  const sortBy = req.query.sortBy as string;
+  const sortBy = req.query.sortBy as string || "date";
   const order = req.query.order === "desc" ? -1 : 1;
 
   try {

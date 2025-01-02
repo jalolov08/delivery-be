@@ -220,7 +220,7 @@ export async function getProducts(req: Request, res: Response) {
     endDate,
     search,
   } = req.query;
-  const sortBy = req.query.sortBy as string;
+  const sortBy = req.query.sortBy as string || "date";
   const order = req.query.order === "desc" ? -1 : 1;
   try {
     const query: any = {};
