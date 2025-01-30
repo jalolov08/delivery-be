@@ -9,4 +9,5 @@ export interface IUser extends Document {
   photoUri?: string;
   googleId?: string;
   address: IAddress[];
+  fcmToken?: string;
 }

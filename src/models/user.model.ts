@@ -23,16 +23,17 @@ const UserSchema = new Schema<IUser>(
     email: { type: String, required: false },
     googleId: { type: String, required: false },
     address: {
-        type: [AddressSchema],
-        validate: [arrayLimit, "{PATH} exceeds the limit of 3"],
-      },
+      type: [AddressSchema],
+      validate: [arrayLimit, "{PATH} exceeds the limit of 3"],
+    },
+    fcmToken: { type: String, required: false },
   },
   { timestamps: true }
 );
 
 function arrayLimit(val: any[]) {
-    return val.length <= 3;
-  }
+  return val.length <= 3;
+}
 
 const User = model<IUser>("User", UserSchema);
 

@@ -200,7 +200,10 @@ export async function logout(req: Request, res: Response) {
       });
       return;
     }
+
+    user.fcmToken = undefined; 
     await Token.findOneAndDelete({ userId });
+
     res.status(200).json({
       message: "Успешный выход.",
     });

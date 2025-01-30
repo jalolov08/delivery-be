@@ -4,12 +4,15 @@ import {
   createAddress,
   deleteAddress,
   getMe,
+  sendNotificationToAllUsers,
   updateAddress,
+  uploadFcmToken,
 } from "../controllers/user.controller";
 import checkAuth from "../utils/checkAuth";
 import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
+import checkAdmin from "../utils/checkAdmin";
 
 export const userRouter: Router = Router();
 
@@ -31,3 +34,5 @@ userRouter.put("/profile", checkAuth, upload.single("photo"), changeProfile);
 userRouter.post("/address", checkAuth, createAddress);
 userRouter.delete("/address/:id", checkAuth, deleteAddress);
 userRouter.put("/address/:id", checkAuth, updateAddress);
+userRouter.post("/fcm-token", checkAuth, uploadFcmToken);
+userRouter.post("/fcm/all", checkAuth, checkAdmin, sendNotificationToAllUsers);

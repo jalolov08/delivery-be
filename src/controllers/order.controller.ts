@@ -6,6 +6,7 @@ import { getDistance } from "../utils/getDistance";
 import Order from "../models/order.model";
 import { OrderStatus } from "../types/order.type";
 import mongoose from "mongoose";
+import { sendNotification } from "../utils/sendNotification";
 
 export async function createOrderDetails(req: Request, res: Response) {
   const userId = req.user._id;
@@ -257,12 +258,28 @@ export async function assignCourier(req: Request, res: Response) {
       return;
     }
 
+    const user = await User.findById(order.userId);
+    if (!user) {
+      res.status(404).json({ error: "Юзер не найден." });
+      return;
+    }
+
     if (order.status !== OrderStatus.PENDING) {
       res.status(400).json({
         error: `Невозможно назначить курьера. Статус заказа: ${order.status}`,
       });
       return;
     }
+
+    const token = user.fcmToken || "";
+    const title = "Курьер найден";
+    const body = `К заказу ${order.track} был назначен курьер.`;
+    const data = {
+      type: "order",
+      orderId: (order._id as mongoose.Types.ObjectId).toString(),
+    };
+
+    await sendNotification({ token, title, data, body });
 
     order.status = OrderStatus.COURIER_ASSIGNED;
     order.courierName = courierName;
@@ -346,7 +363,7 @@ export async function getOrders(req: Request, res: Response) {
     productId,
     userId,
   } = req.query;
-  const sortBy = req.query.sortBy as string || "date";
+  const sortBy = (req.query.sortBy as string) || "date";
   const order = req.query.order === "desc" ? -1 : 1;
 
   try {
@@ -437,6 +454,22 @@ export async function changeOrderStatus(req: Request, res: Response) {
       });
       return;
     }
+
+    const user = await User.findById(order.userId);
+    if (!user) {
+      res.status(404).json({ error: "Юзер не найден." });
+      return;
+    }
+
+    const token = user.fcmToken || "";
+    const title = "Статус заказа обновлен";
+    const body = `Статус заказа обновлен на ${status}.`;
+    const data = {
+      type: "order",
+      orderId: (order._id as mongoose.Types.ObjectId).toString(),
+    };
+
+    await sendNotification({ token, title, data, body });
 
     order.status = status;
     await order.save();
