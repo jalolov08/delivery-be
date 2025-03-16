@@ -6,6 +6,7 @@ import {
   deleteProduct,
   getProduct,
   getProducts,
+  getProductsBySubcategoryId,
   getSimilarProducts,
   updateProduct,
 } from "../controllers/product.controller";
@@ -45,3 +46,4 @@ productRouter.delete("/:id", checkAuth, checkAdmin, deleteProduct);
 productRouter.get("/", checkAuth, getProducts);
 productRouter.get("/:id", checkAuth, getProduct);
 productRouter.get("/:id/similar", checkAuth, getSimilarProducts);
+productRouter.get("/structured", checkAuth, getProductsBySubcategoryId);

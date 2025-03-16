@@ -13,4 +13,6 @@ export interface IProduct extends Document {
   price: number;
   photos: string[];
   date: string;
+  chapterId: mongoose.Types.ObjectId;
+  chapterName: string;
 }

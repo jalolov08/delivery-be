@@ -4,6 +4,7 @@ import { compressImage } from "../utils/compressImage";
 import Product from "../models/product.model";
 import Category from "../models/category.model";
 import { unlinkSync } from "fs";
+import Chapter from "../models/chapter.model";
 
 export async function createProduct(req: Request, res: Response) {
   const {
@@ -14,6 +15,7 @@ export async function createProduct(req: Request, res: Response) {
     deliveryTime,
     weight,
     price,
+    chapterId,
   } = req.body;
 
   if (
@@ -23,7 +25,8 @@ export async function createProduct(req: Request, res: Response) {
     !subcategoryId ||
     !deliveryTime ||
     !weight ||
-    !price
+    !price ||
+    !chapterId
   ) {
     res.status(400).json({ error: "Пожалуйста заполните все поля." });
     return;
@@ -54,6 +57,16 @@ export async function createProduct(req: Request, res: Response) {
     });
     if (!subcategory) {
       res.status(404).json({ error: "Подкатегория не найдена." });
+      return;
+    }
+
+    const chapter = await Chapter.findOne({
+      _id: chapterId,
+      category: categoryId,
+      subcategory: subcategoryId,
+    });
+    if (!chapter) {
+      res.status(404).json({ error: "Раздел не найдена." });
       return;
     }
 
@@ -88,6 +101,8 @@ export async function createProduct(req: Request, res: Response) {
       weight,
       price,
       photos,
+      chapterId: chapter._id,
+      chapterName: chapter.name,
     });
 
     res.status(201).json({
@@ -110,6 +125,7 @@ export async function updateProduct(req: Request, res: Response) {
     weight,
     price,
     oldPhotos,
+    chapterId,
   } = req.body;
 
   try {
@@ -143,6 +159,20 @@ export async function updateProduct(req: Request, res: Response) {
       }
     }
 
+    let chapter = null;
+    if (chapterId) {
+      chapter = await Chapter.findOne({
+        _id: chapterId,
+        category: categoryId,
+        subcategory: subcategoryId,
+      });
+      if (!chapter) {
+        res.status(404).json({ error: "Раздел не найден." });
+        return;
+      }
+    }
+
+    product.chapterId = chapterId || product.chapterId;
     product.name = name || product.name;
     product.description = description || product.description;
     product.categoryId = categoryId || product.categoryId;
@@ -216,11 +246,12 @@ export async function getProducts(req: Request, res: Response) {
     limit = 10,
     categoryId,
     subcategoryId,
+    chapterId,
     startDate,
     endDate,
     search,
   } = req.query;
-  const sortBy = req.query.sortBy as string || "date";
+  const sortBy = (req.query.sortBy as string) || "date";
   const order = req.query.order === "desc" ? -1 : 1;
   try {
     const query: any = {};
@@ -234,6 +265,10 @@ export async function getProducts(req: Request, res: Response) {
     }
 
     if (subcategoryId) {
+      query.subcategoryId = subcategoryId;
+    }
+
+    if (chapterId) {
       query.subcategoryId = subcategoryId;
     }
 
@@ -324,6 +359,48 @@ export async function getSimilarProducts(req: Request, res: Response) {
     });
   } catch (error) {
     console.error("Ошибка при получение похожих продуктов:", error);
+    res.status(500).json({ error: "Внутренняя ошибка сервера" });
+  }
+}
+export async function getProductsBySubcategoryId(req: Request, res: Response) {
+  const { subcategoryId } = req.params;
+
+  try {
+    const subcategory = await Subcategory.findById(subcategoryId);
+    if (!subcategory) {
+      res.status(404).json({ error: "Подкатегория не найдена." });
+      return;
+    }
+
+    const products = await Product.find({ subcategoryId })
+      .populate("categoryId", "name")
+      .populate("subcategoryId", "name")
+      .populate("chapterId", "name");
+
+    const groupedProducts = products.reduce((groups: any, product: any) => {
+      const chapterId = product.chapterId
+        ? product.chapterId._id
+        : "uncategorized";
+
+      if (!groups[chapterId]) {
+        groups[chapterId] = {
+          chapterId,
+          chapterName: product.chapterId
+            ? product.chapterId.name
+            : "Без раздела",
+          products: [],
+        };
+      }
+
+      groups[chapterId].products.push(product);
+      return groups;
+    }, {});
+
+    const result = Object.values(groupedProducts);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Ошибка при получении продуктов по подкатегории:", error);
     res.status(500).json({ error: "Внутренняя ошибка сервера" });
   }
 }

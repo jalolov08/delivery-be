@@ -15,6 +15,8 @@ const ProductSchema = new Schema<IProduct>(
     price: { type: Number, required: true },
     photos: [{ type: String, required: true }],
     date: { type: String, default: () => dayjs().format("DD.MM.YYYY HH:mm") },
+    chapterId: { type: Schema.Types.ObjectId, required: true },
+    chapterName: { type: String, required: true },
   },
   { timestamps: true }
 );
