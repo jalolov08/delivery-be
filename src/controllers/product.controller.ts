@@ -363,7 +363,7 @@ export async function getSimilarProducts(req: Request, res: Response) {
   }
 }
 export async function getProductsBySubcategoryId(req: Request, res: Response) {
-  const { subcategoryId } = req.params;
+  const { subcategoryId } = req.query;
 
   try {
     const subcategory = await Subcategory.findById(subcategoryId);
