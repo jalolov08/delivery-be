@@ -6,8 +6,16 @@ const ProductSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true },
     description: { type: String, required: true },
-    categoryId: { type: Schema.Types.ObjectId, required: true },
-    subcategoryId: { type: Schema.Types.ObjectId, required: true },
+    categoryId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "Category",
+    },
+    subcategoryId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "Subcategory",
+    },
     categoryName: { type: String, required: true },
     subcategoryName: { type: String, required: true },
     deliveryTime: { type: Number, required: true },
@@ -15,7 +23,7 @@ const ProductSchema = new Schema<IProduct>(
     price: { type: Number, required: true },
     photos: [{ type: String, required: true }],
     date: { type: String, default: () => dayjs().format("DD.MM.YYYY HH:mm") },
-    chapterId: { type: Schema.Types.ObjectId, required: true },
+    chapterId: { type: Schema.Types.ObjectId, required: true, ref: "Chapter" },
     chapterName: { type: String, required: true },
   },
   { timestamps: true }

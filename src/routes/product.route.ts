@@ -44,6 +44,6 @@ productRouter.put(
 );
 productRouter.delete("/:id", checkAuth, checkAdmin, deleteProduct);
 productRouter.get("/", checkAuth, getProducts);
-productRouter.get("/:id", checkAuth, getProduct);
+productRouter.get("/one/:id", checkAuth, getProduct);
 productRouter.get("/:id/similar", checkAuth, getSimilarProducts);
 productRouter.get("/structured", checkAuth, getProductsBySubcategoryId);
