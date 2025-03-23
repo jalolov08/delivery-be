@@ -32,14 +32,20 @@ productRouter.post(
   "/",
   checkAuth,
   checkAdmin,
-  upload.array("photos"),
+  upload.fields([
+    { name: "photos", maxCount: 10 },
+    { name: "video", maxCount: 1 },
+  ]),
   createProduct
 );
 productRouter.put(
   "/:id",
   checkAuth,
   checkAdmin,
-  upload.array("photos"),
+  upload.fields([
+    { name: "photos", maxCount: 10 },
+    { name: "video", maxCount: 1 },
+  ]),
   updateProduct
 );
 productRouter.delete("/:id", checkAuth, checkAdmin, deleteProduct);

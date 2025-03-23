@@ -21,6 +21,7 @@ const ProductSchema = new Schema<IProduct>(
     deliveryTime: { type: Number, required: true },
     weight: { type: Number, required: true },
     price: { type: Number, required: true },
+    videoUri: { type: String, required: false },
     photos: [{ type: String, required: true }],
     date: { type: String, default: () => dayjs().format("DD.MM.YYYY HH:mm") },
     chapterId: { type: Schema.Types.ObjectId, required: true, ref: "Chapter" },

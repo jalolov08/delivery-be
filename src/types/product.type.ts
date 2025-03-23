@@ -11,6 +11,7 @@ export interface IProduct extends Document {
   deliveryTime: number;
   weight: number;
   price: number;
+  videoUri: string;
   photos: string[];
   date: string;
   chapterId: mongoose.Types.ObjectId;

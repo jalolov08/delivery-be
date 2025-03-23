@@ -5,6 +5,7 @@ import Product from "../models/product.model";
 import Category from "../models/category.model";
 import { unlinkSync } from "fs";
 import Chapter from "../models/chapter.model";
+import { compressVideo } from "../utils/compressVideo";
 
 export async function createProduct(req: Request, res: Response) {
   const {
@@ -37,10 +38,14 @@ export async function createProduct(req: Request, res: Response) {
     return;
   }
 
-  if (!req.files || !Array.isArray(req.files) || req.files.length <= 0) {
+  if (
+    !req.files ||
+    (!(req.files as { [fieldname: string]: Express.Multer.File[] })["photos"] &&
+      !(req.files as { [fieldname: string]: Express.Multer.File[] })["video"])
+  ) {
     res
       .status(400)
-      .json({ error: "Пожалуйста предоставьте хотя бы одно фото." });
+      .json({ error: "Пожалуйста предоставьте хотя бы одно фото или видео." });
     return;
   }
 
@@ -71,24 +76,55 @@ export async function createProduct(req: Request, res: Response) {
     }
 
     let photos: string[] = [];
+    let videos: string[] = [];
 
-    const files = req.files.map(async (file: Express.Multer.File) => {
-      try {
-        const compressedFile = await compressImage(
-          file.path,
-          "uploads/products",
-          1000,
-          800
-        );
-        return compressedFile;
-      } catch (error) {
-        console.error("Ошибка при сжатии изображения:", error);
-        unlinkSync(file.path);
-        throw new Error("Ошибка при сжатии изображения.");
-      }
-    });
+    if (
+      (req.files as { [fieldname: string]: Express.Multer.File[] })["photos"]
+    ) {
+      const photoFiles = (
+        req.files as { [fieldname: string]: Express.Multer.File[] }
+      )["photos"];
+      const photoUploads = photoFiles.map(async (file: Express.Multer.File) => {
+        try {
+          const compressedFile = await compressImage(
+            file.path,
+            "uploads/products",
+            1000,
+            800
+          );
+          return compressedFile;
+        } catch (error) {
+          console.error("Ошибка при сжатии изображения:", error);
+          unlinkSync(file.path);
+          throw new Error("Ошибка при сжатии изображения.");
+        }
+      });
 
-    photos = await Promise.all(files);
+      photos = await Promise.all(photoUploads);
+    }
+
+    if (
+      (req.files as { [fieldname: string]: Express.Multer.File[] })["video"]
+    ) {
+      const videoFiles = (
+        req.files as { [fieldname: string]: Express.Multer.File[] }
+      )["video"];
+      const videoUploads = videoFiles.map(async (file: Express.Multer.File) => {
+        try {
+          const compressedVideoPath = await compressVideo(
+            file.path,
+            "uploads/products"
+          );
+          return compressedVideoPath;
+        } catch (error) {
+          console.error("Ошибка при сжатии видео:", error);
+          unlinkSync(file.path);
+          throw new Error("Ошибка при сжатии видео.");
+        }
+      });
+
+      videos = await Promise.all(videoUploads);
+    }
 
     const product = await Product.create({
       name,
@@ -100,6 +136,7 @@ export async function createProduct(req: Request, res: Response) {
       deliveryTime,
       weight,
       price,
+      videoUri: videos[0],
       photos,
       chapterId: chapter._id,
       chapterName: chapter.name,
@@ -185,30 +222,64 @@ export async function updateProduct(req: Request, res: Response) {
     product.weight = weight || product.weight;
     product.price = price || product.price;
 
-    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+    if (req.files) {
       let newPhotos: string[] = [];
-      const files = req.files.map(async (file: Express.Multer.File) => {
-        try {
-          const compressedFile = await compressImage(
-            file.path,
-            "uploads/products",
-            1000,
-            800
-          );
-          return compressedFile;
-        } catch (error) {
-          console.error("Ошибка при сжатии изображения:", error);
-          unlinkSync(file.path);
-          throw new Error("Ошибка при сжатии изображения.");
-        }
-      });
+      let newVideos: string[] = [];
 
-      newPhotos = await Promise.all(files);
-      if (oldPhotos) {
-        product.photos = [...newPhotos, oldPhotos];
-      } else {
-        product.photos = newPhotos;
+      if (
+        (req.files as { [fieldname: string]: Express.Multer.File[] })["photos"]
+      ) {
+        const photoFiles = (
+          req.files as { [fieldname: string]: Express.Multer.File[] }
+        )["photos"];
+        const photoUploads = photoFiles.map(
+          async (file: Express.Multer.File) => {
+            try {
+              const compressedFile = await compressImage(
+                file.path,
+                "uploads/products",
+                1000,
+                800
+              );
+              return compressedFile;
+            } catch (error) {
+              console.error("Ошибка при сжатии изображения:", error);
+              unlinkSync(file.path);
+              throw new Error("Ошибка при сжатии изображения.");
+            }
+          }
+        );
+
+        newPhotos = await Promise.all(photoUploads);
       }
+
+      if (
+        (req.files as { [fieldname: string]: Express.Multer.File[] })["video"]
+      ) {
+        const videoFiles = (
+          req.files as { [fieldname: string]: Express.Multer.File[] }
+        )["videos"];
+        const videoUploads = videoFiles.map(
+          async (file: Express.Multer.File) => {
+            try {
+              const compressedVideoPath = await compressVideo(
+                file.path,
+                "uploads/products"
+              );
+              return compressedVideoPath;
+            } catch (error) {
+              console.error("Ошибка при сжатии видео:", error);
+              unlinkSync(file.path);
+              throw new Error("Ошибка при сжатии видео.");
+            }
+          }
+        );
+
+        newVideos = await Promise.all(videoUploads);
+      }
+
+      product.photos = [...newPhotos, ...product.photos];
+      product.videoUri = newVideos[0];
     }
 
     await product.save();
